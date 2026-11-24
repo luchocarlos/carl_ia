@@ -1,0 +1,245 @@
+/* ── Capas de Tailwind (reset, componentes y utilidades) ── */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ════════ Estilos base globales ════════ */
+@layer base {
+  /* ── Variables y esquema de color ── */
+  :root {
+    color-scheme: dark; /* controles nativos (scroll, inputs) en modo oscuro */
+    --carl-ink: #09090b; /* color de fondo principal */
+  }
+
+  /* ── Documento ── */
+  html {
+    -webkit-text-size-adjust: 100%; /* evita que iOS agrande el texto al girar */
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ── Cuerpo con halos de color en la parte superior ── */
+  body {
+    @apply bg-ink font-sans text-foreground antialiased;
+    min-height: 100dvh; /* alto dinámico: respeta barras del navegador móvil */
+    background-image:
+      radial-gradient(60rem 40rem at 50% -10%, rgba(99, 102, 241, 0.12), transparent 70%),
+      radial-gradient(40rem 30rem at 100% 0%, rgba(34, 211, 238, 0.06), transparent 70%);
+    background-repeat: no-repeat;
+  }
+
+  /* ── Contenedor raíz de React ── */
+  #root {
+    min-height: 100dvh;
+  }
+
+  /* ── Texto seleccionado ── */
+  ::selection {
+    background: rgba(99, 102, 241, 0.35);
+    color: #f4f4f5;
+  }
+
+  /* ── Anillo de foco visible (navegación con teclado) ── */
+  :focus-visible {
+    outline: 2px solid #a5b4fc;
+    outline-offset: 2px;
+  }
+
+  /* ── Barras de desplazamiento (Firefox) ── */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent; /* pulgar / pista */
+  }
+
+  /* ── Barras de desplazamiento (Chrome, Edge, Safari) ── */
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.14);
+    border: 2px solid transparent; /* borde transparente = margen interno del pulgar */
+    border-radius: 9999px;
+    background-clip: content-box; /* el fondo no pinta bajo el borde */
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.24);
+    background-clip: content-box;
+  }
+}
+
+/* ════════ Componentes: contenido Markdown de las respuestas ════════ */
+@layer components {
+  /* ── Contenedor Markdown ── */
+  .markdown {
+    @apply text-sm leading-relaxed text-foreground/95;
+  }
+
+  /* ── Separación vertical entre bloques consecutivos ── */
+  .markdown > * + * {
+    @apply mt-3;
+  }
+
+  /* ── Encabezados ── */
+  .markdown h1 {
+    @apply mt-6 text-xl font-semibold tracking-tight text-foreground;
+  }
+
+  .markdown h2 {
+    @apply mt-6 text-lg font-semibold tracking-tight text-foreground;
+  }
+
+  .markdown h3 {
+    @apply mt-5 text-base font-semibold text-foreground;
+  }
+
+  .markdown h4 {
+    @apply mt-4 text-sm font-semibold text-foreground;
+  }
+
+  /* ── Párrafos y énfasis ── */
+  .markdown p {
+    @apply text-foreground/90;
+  }
+
+  .markdown strong {
+    @apply font-semibold text-foreground;
+  }
+
+  .markdown em {
+    @apply text-foreground/90;
+  }
+
+  /* ── Listas ── */
+  .markdown ul {
+    @apply list-disc space-y-1 pl-5;
+  }
+
+  .markdown ol {
+    @apply list-decimal space-y-1 pl-5;
+  }
+
+  /* Evita el salto de línea entre la viñeta y el texto en listas "sueltas" */
+  .markdown li > p {
+    @apply inline;
+  }
+
+  .markdown li::marker {
+    color: rgba(161, 161, 170, 0.8);
+  }
+
+  /* ── Citas ── */
+  .markdown blockquote {
+    @apply border-l-2 border-indigo-400/50 pl-3 text-muted;
+  }
+
+  /* ── Código en línea ── */
+  .markdown code {
+    @apply rounded bg-white/10 px-1.5 py-0.5 font-mono text-[0.85em] text-foreground;
+  }
+
+  /* ── Código dentro de bloques <pre>: sin la "píldora" del código en línea ── */
+  .markdown pre code {
+    @apply bg-transparent p-0 text-inherit;
+  }
+
+  /* ── Tablas ── */
+  .markdown table {
+    @apply w-full border-collapse text-sm;
+  }
+
+  .markdown th,
+  .markdown td {
+    @apply border border-white/10 px-3 py-1.5 text-left align-top;
+  }
+
+  .markdown th {
+    @apply bg-white/5 font-medium text-foreground;
+  }
+
+  /* ── Separador horizontal ── */
+  .markdown hr {
+    @apply my-6 border-white/10;
+  }
+}
+
+/* ════════ Resaltado de sintaxis: tokens de highlight.js, tema oscuro propio ════════ */
+
+/* ── Comentarios y citas (gris) ── */
+.hljs-comment,
+.hljs-quote {
+  color: #71717a;
+}
+
+/* ── Palabras clave, literales y tipos (índigo) ── */
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-type {
+  color: #a5b4fc;
+}
+
+/* ── Cadenas, atributos y plantillas (cian) ── */
+.hljs-string,
+.hljs-attr,
+.hljs-template-tag,
+.hljs-template-variable {
+  color: #67e8f9;
+}
+
+/* ── Números y símbolos (ámbar) ── */
+.hljs-number,
+.hljs-symbol,
+.hljs-bullet {
+  color: #fbbf24;
+}
+
+/* ── Títulos, secciones y nombres (blanco) ── */
+.hljs-title,
+.hljs-section,
+.hljs-name {
+  color: #f4f4f5;
+}
+
+/* ── Funciones e integradas (violeta) ── */
+.hljs-built_in,
+.hljs-function {
+  color: #c4b5fd;
+}
+
+/* ── Variables y parámetros (rosa) ── */
+.hljs-variable,
+.hljs-params {
+  color: #fda4af;
+}
+
+/* ── Metadatos (directivas, decoradores) ── */
+.hljs-meta {
+  color: #a1a1aa;
+}
+
+/* ── Énfasis y negrita ── */
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 600;
+}
+
+/* ── Accesibilidad: desactiva animaciones si el usuario prefiere menos movimiento ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important; /* casi 0 en lugar de none para que sigan disparando eventos */
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

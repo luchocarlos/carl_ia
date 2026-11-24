@@ -1,0 +1,76 @@
+{
+  "defaultProvider": "auto",
+  "providers": {
+    "openrouter": {
+      "name": "OpenRouter",
+      "api": "openai",
+      "baseURL": "https://openrouter.ai/api/v1",
+      "envKey": "OPENROUTER_API_KEY",
+      "free": true,
+      "defaultModel": "google/gemma-4-31b-it:free",
+      "freeModels": [
+        "google/gemma-4-31b-it:free",
+        "google/gemma-4-26b-a4b-it:free",
+        "nvidia/nemotron-3.5-lightning:free",
+        "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "nvidia/nemotron-3.5-super-vl:free",
+        "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "inclusionai/ling-3.2-flash:free",
+        "baidu/ernie-5.5-flash-preview:free",
+        "liquid/lfm-3-1.7b:free",
+        "particle-ai/particle-1:free",
+        "recursive/flint-v1.0:free"
+      ],
+      "headers": {
+        "HTTP-Referer": "{env:OPENROUTER_SITE_URL}",
+        "X-OpenRouter-Title": "{env:OPENROUTER_SITE_NAME}"
+      },
+      "note": "Usa modelos con el sufijo :free. Revisa los límites vigentes de tu cuenta."
+    },
+    "groq": {
+      "name": "Groq",
+      "api": "openai",
+      "baseURL": "https://api.groq.com/openai/v1",
+      "envKey": "GROQ_API_KEY",
+      "free": true
+    },
+    "cerebras": {
+      "name": "Cerebras",
+      "api": "openai",
+      "baseURL": "https://api.cerebras.ai/v1",
+      "envKey": "CEREBRAS_API_KEY",
+      "free": true
+    },
+    "mistral": {
+      "name": "Mistral",
+      "api": "openai",
+      "baseURL": "https://api.mistral.ai/v1",
+      "envKey": "MISTRAL_API_KEY",
+      "free": true
+    },
+    "google": {
+      "name": "Google Gemini",
+      "api": "google",
+      "baseURL": "https://generativelanguage.googleapis.com/v1beta",
+      "envKey": "GEMINI_API_KEY",
+      "free": true
+    },
+    "opencode": {
+      "name": "OpenCode (pagado o Go)",
+      "api": "openai",
+      "baseURL": "https://opencode.ai/inference/openai/v1",
+      "envKey": "OPENCODE_API_KEY",
+      "free": false,
+      "soloEnOpenCode": true,
+      "note": "Los modelos *-free de OpenCode solo funcionan dentro de OpenCode; desde una web responden 429/403."
+    },
+    "ollama": {
+      "name": "Ollama (local)",
+      "api": "openai",
+      "baseURL": "http://127.0.0.1:11434/v1",
+      "envKey": null,
+      "free": true,
+      "note": "Requiere Ollama corriendo en el servidor del backend."
+    }
+  }
+}
