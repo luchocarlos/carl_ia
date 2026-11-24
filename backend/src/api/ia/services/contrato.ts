@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { Context } from 'koa';
-import { chat, construirCadena, IaError, resolverProveedor } from './ia';
+import { chat, IaError, resolverProveedor } from './ia';
 import type { ChatMessage } from '../providers/types';
 
 // Modo de respuesta: chat normal o documento técnico.
@@ -242,24 +242,20 @@ export function prepararMensajes(modo: 'text' | 'document', crudos: unknown): Ch
   return mensajes;
 }
 
-/** Verifica que exista al menos un proveedor utilizable antes de cobrar. */
-export function asegurarProveedor(): void {
-  const elegido = process.env.IA_DEFAULT_PROVIDER?.trim();
-  const disponible = construirCadena().some((intento) => {
-    if (intento.provider === 'ollama' && elegido !== 'ollama') return false; // Ollama (local) solo cuenta si se eligió explícitamente
-    try {
-      resolverProveedor(intento.provider); // Lanza si falta la API key o no existe
-      return true;
-    } catch {
-      return false;
-    }
-  });
+/** Proveedor único del chat: Groq (sin respaldo). */
+const PROVEEDOR = 'groq';
 
-  if (!disponible) {
-    throw new IaError(
-      'Falta configurar una API key de IA en el backend (OPENROUTER_API_KEY).',
-      503,
-    );
+/** Modelo de Groq: GROQ_MODEL o llama-3.3-70b-versatile por defecto. */
+export function modeloGroq(): string {
+  return process.env.GROQ_MODEL?.trim() || 'llama-3.3-70b-versatile';
+}
+
+/** Verifica que GROQ_API_KEY esté configurada antes de cobrar. */
+export function asegurarProveedor(): void {
+  try {
+    resolverProveedor(PROVEEDOR); // Lanza si falta GROQ_API_KEY
+  } catch {
+    throw new IaError('Falta configurar GROQ_API_KEY en el backend.', 503);
   }
 }
 
@@ -275,8 +271,10 @@ export async function responderChat(
   modo: 'text' | 'document',
   mensajes: ChatMessage[],
 ): Promise<RespuestaChat> {
-  // Llamada al servicio de IA (con fallback entre proveedores).
+  // Llamada a Groq (proveedor explícito: sin cadena de respaldo).
   const resultado = await chat({
+    provider: PROVEEDOR,
+    model: modeloGroq(),
     messages: mensajes,
     system: SISTEMA[modo],
     maxTokens: MAX_TOKENS,

@@ -162,6 +162,8 @@ describe('streaming y enfoque de programación', () => {
     await modulo.responderChat('text', mensajes);
 
     expect(chatMock).toHaveBeenCalledWith({
+      provider: 'groq',
+      model: modulo.modeloGroq(),
       messages: mensajes,
       system: modulo.SISTEMA_PROGRAMACION,
       maxTokens: 800,

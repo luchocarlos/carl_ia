@@ -51,7 +51,7 @@ function extraerTexto(contenido: unknown): string {
   return '';
 }
 
-// Implementación de ProviderAdapter para APIs estilo OpenAI (OpenRouter, Groq, etc.).
+// Implementación de ProviderAdapter para APIs estilo OpenAI (Groq, Cerebras, etc.).
 export const openaiCompatible: ProviderAdapter = {
   // Chat compatible con OpenAI: envía la conversación a /chat/completions.
   async chat(config, options: ChatOptions, apiKey): Promise<ChatResult> {
@@ -103,7 +103,7 @@ export const openaiCompatible: ProviderAdapter = {
     const lista = Array.isArray(data?.data) ? data.data : [];
     return lista
       .map((modelo: any) => {
-        // Precios por token (formato OpenRouter); gratis si prompt y completion valen 0.
+        // Precios por token (si el proveedor los informa); gratis si prompt y completion valen 0.
         const prompt = Number(modelo?.pricing?.prompt);
         const completion = Number(modelo?.pricing?.completion);
         const gratis =

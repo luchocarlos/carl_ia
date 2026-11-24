@@ -127,10 +127,17 @@ export default {
           terminado = true;
         } catch (error) {
           // Error durante la generación: se informa por el stream y se reembolsan los puntos.
-          enviar({
-            error: (error as Error)?.message || 'No se pudo generar la respuesta.',
-            status: estadoDeError(error),
-          });
+          console.error('CARL STREAM ERROR:', (error as Error)?.message || error); // Detalle técnico solo en el log
+          const status = estadoDeError(error);
+          const original = error instanceof IaError ? error.status : 502; // Estado real de Groq
+          // 429 / 5xx de Groq: mensaje claro en español en lugar del texto técnico del proveedor.
+          const mensaje =
+            original === 429
+              ? 'El servicio de IA está recibiendo demasiadas solicitudes. Espera unos segundos e inténtalo de nuevo.'
+              : status >= 500
+                ? 'El servicio de IA no está disponible en este momento. Inténtalo de nuevo en unos minutos.'
+                : (error as Error)?.message || 'No se pudo generar la respuesta.';
+          enviar({ error: mensaje, status });
           if (abierto) stream.write('data: [DONE]\n\n');
           terminado = true;
           reembolsar();

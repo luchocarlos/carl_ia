@@ -54,8 +54,8 @@ describe('normalizarMensajes', () => {
 describe('construirCadena', () => {
   // Con proveedor explícito no hay fallback.
   it('usa solo el proveedor explícito con su modelo', () => {
-    expect(construirCadena('openrouter', 'modelo/x:free')).toEqual([
-      { provider: 'openrouter', model: 'modelo/x:free' },
+    expect(construirCadena('groq', 'modelo/x')).toEqual([
+      { provider: 'groq', model: 'modelo/x' },
     ]);
   });
 
@@ -64,13 +64,13 @@ describe('construirCadena', () => {
     const anterior = process.env.IA_DEFAULT_PROVIDER;
     const anteriorCadena = process.env.IA_FALLBACK_CHAIN;
 
-    process.env.IA_DEFAULT_PROVIDER = 'openrouter';
+    process.env.IA_DEFAULT_PROVIDER = 'groq';
     delete process.env.IA_FALLBACK_CHAIN;
 
     try {
       const cadena = construirCadena();
-      expect(cadena[0].provider).toBe('openrouter');
-      expect(cadena[0].model).toBe('google/gemma-4-31b-it:free');
+      expect(cadena[0].provider).toBe('groq');
+      expect(cadena[0].model).toBe('llama-3.3-70b-versatile');
       expect(cadena.map((intento) => intento.provider)).not.toContain('opencode');
     } finally {
       if (anterior === undefined) delete process.env.IA_DEFAULT_PROVIDER;
@@ -85,13 +85,13 @@ describe('construirCadena', () => {
     const anterior = process.env.IA_DEFAULT_PROVIDER;
     const anteriorCadena = process.env.IA_FALLBACK_CHAIN;
 
-    process.env.IA_DEFAULT_PROVIDER = 'openrouter';
-    process.env.IA_FALLBACK_CHAIN = 'groq:llama-x,google:gemini-x:free';
+    process.env.IA_DEFAULT_PROVIDER = 'groq';
+    process.env.IA_FALLBACK_CHAIN = 'cerebras:llama-x,google:gemini-x:free';
 
     try {
       expect(construirCadena()).toEqual([
-        { provider: 'openrouter', model: 'google/gemma-4-31b-it:free' },
-        { provider: 'groq', model: 'llama-x' },
+        { provider: 'groq', model: 'llama-3.3-70b-versatile' },
+        { provider: 'cerebras', model: 'llama-x' },
         { provider: 'google', model: 'gemini-x:free' },
       ]);
     } finally {
@@ -116,14 +116,15 @@ describe('esGratis', () => {
 
 // Fallback entre proveedores simulando fetch.
 describe('chat con respaldo', () => {
-  // openrouter responde 429 (reintentable) -> se usa groq y se informa el fallo.
+  // cerebras responde 429 (reintentable) -> se usa groq y se informa el fallo.
   it('pasa al siguiente proveedor si el primero responde 429', async () => {
-    const claves = ['IA_DEFAULT_PROVIDER', 'IA_FALLBACK_CHAIN', 'OPENROUTER_API_KEY', 'GROQ_API_KEY'];
+    const claves = ['IA_DEFAULT_PROVIDER', 'IA_FALLBACK_CHAIN', 'CEREBRAS_API_KEY', 'GROQ_API_KEY', 'IA_MODEL_CEREBRAS'];
     const previos = Object.fromEntries(claves.map((clave) => [clave, process.env[clave]]));
 
-    process.env.IA_DEFAULT_PROVIDER = 'openrouter';
+    process.env.IA_DEFAULT_PROVIDER = 'cerebras';
     process.env.IA_FALLBACK_CHAIN = 'groq:modelo-groq';
-    process.env.OPENROUTER_API_KEY = 'k1';
+    process.env.CEREBRAS_API_KEY = 'k1';
+    process.env.IA_MODEL_CEREBRAS = 'modelo-cerebras';
     process.env.GROQ_API_KEY = 'k2';
 
     let llamadas = 0;
@@ -131,7 +132,7 @@ describe('chat con respaldo', () => {
       'fetch',
       vi.fn(async (url: string) => {
         llamadas += 1;
-        if (String(url).includes('openrouter')) {
+        if (String(url).includes('cerebras')) {
           return new Response(JSON.stringify({ error: { message: 'rate limit' } }), {
             status: 429,
           });
@@ -153,7 +154,7 @@ describe('chat con respaldo', () => {
       expect(resultado.provider).toBe('groq');
       expect(resultado.content).toBe('hola');
       expect(resultado.fallbacks).toEqual([
-        { provider: 'openrouter', status: 429, error: 'rate limit' },
+        { provider: 'cerebras', status: 429, error: 'rate limit' },
       ]);
       expect(llamadas).toBe(2);
     } finally {
@@ -167,12 +168,13 @@ describe('chat con respaldo', () => {
 
   // Un 400 es error de la petición: no se prueba otro proveedor (una sola llamada).
   it('no reintenta cuando el error es de la solicitud', async () => {
-    const claves = ['IA_DEFAULT_PROVIDER', 'IA_FALLBACK_CHAIN', 'OPENROUTER_API_KEY', 'GROQ_API_KEY'];
+    const claves = ['IA_DEFAULT_PROVIDER', 'IA_FALLBACK_CHAIN', 'CEREBRAS_API_KEY', 'GROQ_API_KEY', 'IA_MODEL_CEREBRAS'];
     const previos = Object.fromEntries(claves.map((clave) => [clave, process.env[clave]]));
 
-    process.env.IA_DEFAULT_PROVIDER = 'openrouter';
+    process.env.IA_DEFAULT_PROVIDER = 'cerebras';
     process.env.IA_FALLBACK_CHAIN = 'groq:modelo-groq';
-    process.env.OPENROUTER_API_KEY = 'k1';
+    process.env.CEREBRAS_API_KEY = 'k1';
+    process.env.IA_MODEL_CEREBRAS = 'modelo-cerebras';
     process.env.GROQ_API_KEY = 'k2';
 
     let llamadas = 0;

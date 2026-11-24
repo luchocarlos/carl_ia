@@ -159,7 +159,7 @@ function parsearCadena(crudo: string): IntentoChat[] {
     .filter((item) => item.provider);
 }
 
-// Lee el modelo configurado para un proveedor en IA_MODEL_<PROVEEDOR> (p. ej. IA_MODEL_OPENROUTER).
+// Lee el modelo configurado para un proveedor en IA_MODEL_<PROVEEDOR> (p. ej. IA_MODEL_GROQ).
 function modeloEntorno(providerId: string): string {
   const variable = `IA_MODEL_${providerId.toUpperCase().replace(/[^A-Z0-9]/g, '_')}`;
   return texto(process.env[variable]);
@@ -429,7 +429,7 @@ export function estado() {
     rutas: [
       'GET /api/ia/estado',
       'GET /api/ia/proveedores',
-      'GET /api/ia/models?provider=openrouter&free=1',
+      'GET /api/ia/models?provider=groq',
       'GET /api/ia/models?provider=auto',
       'POST /api/ia/chat',
       'POST /api/chat (SSE)',
