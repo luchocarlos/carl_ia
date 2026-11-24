@@ -10,7 +10,9 @@
     "start": "strapi start",
     "strapi": "strapi",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build:server": "tsc -p tsconfig.json",
+    "start:prod": "node --max-old-space-size=320 node_modules/@strapi/strapi/bin/strapi.js start"
   },
   "dependencies": {
     "@strapi/plugin-cloud": "5.33.3",

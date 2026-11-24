@@ -1,6 +1,9 @@
 // Configuración del panel de administración de Strapi.
 // Todos los secretos se leen de variables de entorno (nunca se hardcodean).
 export default ({ env }) => ({
+  // Sirve el panel admin. En producción con poca RAM (512 MB) se desactiva con
+  // SERVE_ADMIN=false: así no hay que compilarlo (el build del admin consume >1 GB).
+  serveAdminPanel: env.bool('SERVE_ADMIN', true),
   // Autenticación de usuarios del panel admin (firma de los JWT).
   auth: {
     secret: env('ADMIN_JWT_SECRET'), // Secreto para firmar los JWT del admin

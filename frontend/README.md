@@ -2,7 +2,7 @@
 
 SPA de IA especializada en programación, con dos modos: **Código** y **Documentación técnica**. Interfaz en español, estética oscura inspirada en Linear/Raycast, sin copiar assets ni código de terceros.
 
-> Esta fase incluye el frontend y su contrato HTTP. Sin `VITE_API_BASE_URL` funciona con `MockClient`, que simula streaming y consumo. Con la variable definida habla con el backend Strapi de `../backend` (`/api/chat`, `/api/usage`). El backend responde **solo** sobre programación.
+> Esta fase incluye el frontend y su contrato HTTP. Sin `VITE_API_BASE_URL` funciona con `MockClient`, que simula streaming y consumo. Con la variable definida habla con el backend Strapi del proyecto (`/api/chat`, `/api/usage`). El backend responde **solo** sobre programación.
 
 ## Stack
 
@@ -74,7 +74,7 @@ usage(): Promise<{ used, limit, resetAt, global: { pct, status } }>
 
 ### Contrato del backend
 
-Implementado en `../backend/src/api/ia/controllers/contrato.ts`:
+Implementado en el backend:
 
 ```http
 POST /api/chat
@@ -131,7 +131,7 @@ El parser SSE acepta `delta`, `content` o `text` dentro de cada `data:` y tambi�
 ## Seguridad del frontend
 
 - `index.html` incluye una CSP estricta (`script-src 'self'`, `object-src 'none'`, `base-uri 'self'`). En desarrollo se retira mediante un plugin de Vite porque React Refresh necesita scripts inline y HMR un WebSocket.
-- `frame-ancestors 'none'` no puede aplicarse desde `<meta>`: se envía como cabecera en `render.yaml` y `vercel.json`, junto con `X-Frame-Options: DENY`, `X-Content-Type-Options` y `Referrer-Policy`.
+- `frame-ancestors 'none'` no puede aplicarse desde `<meta>`: se envía como cabecera en el blueprint de Render y en `vercel.json`, junto con `X-Frame-Options: DENY`, `X-Content-Type-Options` y `Referrer-Policy`.
 - Sin `dangerouslySetInnerHTML`.
 - Markdown con `skipHtml`: el HTML crudo se ignora. Los enlaces se renderizan como texto y las imágenes del modelo no se muestran.
 - Aviso visible de privacidad en el estado vacío y en la barra lateral.
@@ -139,15 +139,15 @@ El parser SSE acepta `delta`, `content` o `text` dentro de cada `data:` y tambi�
 
 ## Despliegue en Render (sitio estático)
 
-`render.yaml` ya lo define:
+El blueprint `render.yaml` de la raíz del repositorio ya lo define:
 
-- Build: `npm install && npm run build`
+- Build: `npm ci && npm run build`
 - Publish: `dist`
 - Rewrite SPA: `/* → /index.html`
 - Cabeceras: CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options` y `Referrer-Policy`
 - Variable opcional: `VITE_API_BASE_URL`
 
-Pasos: conecta el repositorio, selecciona el directorio `diplomado_ia/frontend`, usa el blueprint o crea un Static Site con esos valores.
+Pasos: en Render crea un **Blueprint** con este repositorio, o un Static Site manual con esos valores. Define `VITE_API_BASE_URL` con la URL del backend.
 
 `vercel.json` también incluye la regla SPA.
 

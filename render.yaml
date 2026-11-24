@@ -1,12 +1,18 @@
+# Blueprint de Render: backend (Strapi) + frontend (sitio estático).
+# Pensado para el plan free (512 MB de RAM):
+#   - El backend NO compila el panel admin de Strapi (consume >1 GB); solo compila
+#     el servidor con TypeScript (build:server) y arranca con el heap limitado (start:prod).
+#   - El panel admin queda desactivado con SERVE_ADMIN=false (la app no lo necesita).
 services:
+  # ── Backend: API de IA ──
   - type: web
-    name: diplomado-ia-backend
+    name: carl-ia-backend
     runtime: node
     plan: free
     rootDir: backend
     autoDeploy: true
-    buildCommand: npm ci --include=dev && npm run build
-    startCommand: npm run start
+    buildCommand: npm ci && npm run build:server
+    startCommand: npm run start:prod
     healthCheckPath: /api/ia/estado
     envVars:
       - key: NODE_ENV
@@ -15,10 +21,15 @@ services:
         value: 22.14.0
       - key: HOST
         value: 0.0.0.0
+      - key: SERVE_ADMIN
+        value: false
+      - key: PROXY
+        value: true
       - key: DATABASE_CLIENT
         value: sqlite
       - key: DATABASE_FILENAME
         value: .tmp/data.db
+      # Secretos internos de Strapi: Render los genera automáticamente.
       - key: APP_KEYS
         generateValue: true
       - key: API_TOKEN_SALT
@@ -29,6 +40,14 @@ services:
         generateValue: true
       - key: JWT_SECRET
         generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      # URLs públicas (se completan en el panel tras el primer deploy).
+      - key: PUBLIC_URL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      # Configuración de la capa de IA.
       - key: IA_API_KEY
         sync: false
       - key: IA_DEFAULT_PROVIDER
@@ -39,24 +58,19 @@ services:
         value: openrouter/free
       - key: IA_FALLBACK_CHAIN
         value: openrouter:openrouter/free,groq:openai/gpt-oss-120b
-      - key: FRONTEND_URL
-        sync: false
       - key: IA_DAILY_LIMIT
         value: 30
       - key: IA_GLOBAL_DAILY_LIMIT
         value: 300
       - key: IA_USAGE_FILE
         sync: false
-      - key: PUBLIC_URL
-        sync: false
-      - key: PROXY
-        value: true
+      # Claves de proveedores (al menos una es obligatoria).
       - key: OPENROUTER_API_KEY
         sync: false
       - key: OPENROUTER_SITE_URL
         sync: false
       - key: OPENROUTER_SITE_NAME
-        value: diplomado_ia
+        value: carl_ia
       - key: GROQ_API_KEY
         sync: false
       - key: CEREBRAS_API_KEY
@@ -67,3 +81,36 @@ services:
         sync: false
       - key: OPENCODE_API_KEY
         sync: false
+
+  # ── Frontend: SPA estática ──
+  - type: web
+    name: carl-ia-frontend
+    runtime: static
+    plan: free
+    rootDir: frontend
+    autoDeploy: true
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      # URL pública del backend (sin barra final). Se inyecta en el build.
+      - key: VITE_API_BASE_URL
+        sync: false
+    # Todas las rutas sirven index.html (SPA).
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    # Cabeceras de seguridad.
+    headers:
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
